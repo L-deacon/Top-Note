@@ -1,0 +1,71 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <RootNamespace>Top_Note</RootNamespace>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <ApplicationIcon>TopNoteIcon.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Fonts\Roboto.ttf" />
+    <None Remove="Images\Dark\AddNoteImage.png" />
+    <None Remove="Images\Dark\pinnedDark.png" />
+    <None Remove="Images\Dark\refreshDark.png" />
+    <None Remove="Images\Dark\saveDark.png" />
+    <None Remove="Images\Dark\unpinnedDark.png" />
+    <None Remove="Images\delete.png" />
+    <None Remove="Images\Light\pinnedLight.png" />
+    <None Remove="Images\Light\refreshLight.png" />
+    <None Remove="Images\Light\saveLight.png" />
+    <None Remove="Images\Light\unpinnedLight.png" />
+    <None Remove="Images\moon.png" />
+    <None Remove="Images\NotesColors\blueSquare.png" />
+    <None Remove="Images\NotesColors\greenSquare.png" />
+    <None Remove="Images\NotesColors\orangeSquare.png" />
+    <None Remove="Images\NotesColors\purpleSquare.png" />
+    <None Remove="Images\NotesColors\redSquare.png" />
+    <None Remove="Images\NotesColors\yellowSquare.png" />
+    <None Remove="Images\sun.png" />
+    <None Remove="NotesDB.db" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="NotesDB.db">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="TopNoteIcon.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Dapper" Version="2.1.66" />
+    <PackageReference Include="MvvmLightLibs" Version="5.4.1.1" />
+    <PackageReference Include="System.Data.SQLite.Core" Version="1.0.119" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Fonts\Roboto.ttf" />
+    <Resource Include="Images\Dark\AddNoteImage.png" />
+    <Resource Include="Images\Dark\pinnedDark.png" />
+    <Resource Include="Images\Dark\refreshDark.png" />
+    <Resource Include="Images\Dark\saveDark.png" />
+    <Resource Include="Images\Dark\unpinnedDark.png" />
+    <Resource Include="Images\delete.png" />
+    <Resource Include="Images\Light\pinnedLight.png" />
+    <Resource Include="Images\Light\refreshLight.png" />
+    <Resource Include="Images\Light\saveLight.png" />
+    <Resource Include="Images\Light\unpinnedLight.png" />
+    <Resource Include="Images\moon.png" />
+    <Resource Include="Images\NotesColors\blueSquare.png" />
+    <Resource Include="Images\NotesColors\greenSquare.png" />
+    <Resource Include="Images\NotesColors\orangeSquare.png" />
+    <Resource Include="Images\NotesColors\purpleSquare.png" />
+    <Resource Include="Images\NotesColors\redSquare.png" />
+    <Resource Include="Images\NotesColors\yellowSquare.png" />
+    <Resource Include="Images\sun.png" />
+  </ItemGroup>
+
+</Project>

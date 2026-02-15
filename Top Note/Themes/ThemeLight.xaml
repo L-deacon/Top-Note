@@ -1,0 +1,116 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- Colors -->
+    <Color x:Key="BackgroundColor">#FFFFFFFF</Color>
+    <Color x:Key="ForegroundColor">#FF000000</Color>
+    <Color x:Key="ToolBarColor">#E3E3E3</Color>
+    <Color x:Key="ItemHoverColor">#FFF4F4F4</Color>
+    <Color x:Key="ItemSelectedColor">#FF969696</Color>
+    <Color x:Key="ListItemButtonHoverColor">#FFECECEC</Color>
+
+    <!-- Brushes -->
+    <SolidColorBrush x:Key="BackgroundBrush" Color="{DynamicResource BackgroundColor}" />
+    <SolidColorBrush x:Key="ForegroundBrush" Color="{DynamicResource ForegroundColor}" />
+    <SolidColorBrush x:Key="ToolBarBackGroundColor" Color="{DynamicResource ToolBarColor}" />
+    <SolidColorBrush x:Key="NoteBoxTextBoxBackgroundColor" Color="{DynamicResource ToolBarColor}" />
+
+    <!-- Hover Colors -->
+    <SolidColorBrush x:Key="ItemHoverBrush" Color="#FF969696" />
+    <SolidColorBrush x:Key="ItemSelectedBrush" Color="#FFF4F4F4" />
+    <SolidColorBrush x:Key="ListItemButtonHoverBrush" Color="#FFECECEC" />
+
+    <!-- Images -->
+    <BitmapImage x:Key="AddNoteIcon" UriSource="/Images/Dark/AddNoteImage.png" />
+    <BitmapImage x:Key="ThemeToggleIcon" UriSource="/Images/moon.png" />
+    <BitmapImage x:Key="PinnedIcon" UriSource="/Images/Light/pinnedLight.png" />
+    <BitmapImage x:Key="UnpinnedIcon" UriSource="/Images/Light/unpinnedLight.png" />
+    <BitmapImage x:Key="SaveIcon" UriSource="/Images/Light/saveLight.png" />
+    <BitmapImage x:Key="RefreshIcon" UriSource="/Images/Light/refreshLight.png" />
+    <BitmapImage x:Key="DeleteIcon" UriSource="/Images/delete.png" />
+
+
+    <!-- Styles -->
+    <Style x:Key="ToolBarButtonStyle" TargetType="Button">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}">
+                        <ContentPresenter HorizontalAlignment="Center"
+                                          VerticalAlignment="Center"/>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="#969696" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style x:Key="NoteWindowToolBarButtonStyle" TargetType="Button">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}">
+                        <ContentPresenter HorizontalAlignment="Center"
+                                          VerticalAlignment="Center"/>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="#969696" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style x:Key="ListItemButtonStyle" TargetType="Button">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Padding" Value="4" />
+        <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
+        <Setter Property="HorizontalAlignment" Value="Right" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="2">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="{DynamicResource ListItemButtonHoverBrush}" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style x:Key="TextBoxHoverStyle" TargetType="TextBlock">
+        <Setter Property="Background" Value="Transparent" />
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="#696969" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+</ResourceDictionary>
