@@ -11,6 +11,9 @@
     <ApplicationIcon>TopNoteIcon.ico</ApplicationIcon>
 	  <PlatformTarget>x64</PlatformTarget>
 	  <RuntimeIdentifiers>win-x86;win-x64</RuntimeIdentifiers>
+	  <PublishSingleFile>false</PublishSingleFile>
+	  <SelfContained>false</SelfContained>
+	  <PublishTrimmed>false</PublishTrimmed>
 
   </PropertyGroup>
 
