@@ -4,8 +4,10 @@ on:
   push:
     tags:
       - "v*.*.*"
-permissions: 
- contents: write
+
+permissions:
+  contents: write
+
 env:
   PROJECT_PATH: "Top Note/Top Note.csproj"
 
@@ -32,8 +34,8 @@ jobs:
         run: dotnet publish "${{ env.PROJECT_PATH }}" -c Release --self-contained true -r win-x64 -p:PublishSingleFile=true
 
       - name: Create Release
-        uses: actions/create-release@v1
         id: create_release
+        uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -45,6 +47,6 @@ jobs:
       - name: Upload Release Asset
         uses: csexton/release-asset-action@v2
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           pattern: "Top Note/bin/Release/net8.0/win-x64/publish/*.exe"
           release-url: ${{ steps.create_release.outputs.upload_url }}
