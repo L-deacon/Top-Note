@@ -51,6 +51,7 @@
 
             </Button>
 
+
             <Button Command="{Binding SaveNoteCommand}"
                     Style="{DynamicResource NoteWindowToolBarButtonStyle}"
                     Grid.Row="0"
