@@ -4,7 +4,8 @@ on:
   push:
     tags:
       - "v*.*.*"
-
+permissions: 
+ contents: write
 env:
   PROJECT_PATH: "Top Note/Top Note.csproj"
 
