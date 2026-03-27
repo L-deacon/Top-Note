@@ -9,8 +9,6 @@
     <Color x:Key="ItemSelectedColor">#FF696969</Color>
     <Color x:Key="ListItemButtonHoverColor">#FF505050</Color>
 
-
-
     <!-- Brushes -->
     <SolidColorBrush x:Key="BackgroundBrush" Color="{DynamicResource BackgroundColor}" />
     <SolidColorBrush x:Key="ForegroundBrush" Color="{DynamicResource ForegroundColor}" />
@@ -29,7 +27,6 @@
     <BitmapImage x:Key="SaveIcon" UriSource="/Images/Dark/saveDark.png" />
     <BitmapImage x:Key="RefreshIcon" UriSource="/Images/Dark/refreshDark.png" />
     <BitmapImage x:Key="DeleteIcon" UriSource="/Images/delete.png" />
-
 
     <!-- Styles -->
     <Style x:Key="ToolBarButtonStyle" TargetType="Button">
@@ -113,5 +110,80 @@
             </Trigger>
         </Style.Triggers>
     </Style>
+
+
+
+    <Style x:Key="NoteComboBoxStyle" TargetType="ComboBox">
+        <Setter Property="Background" Value="{DynamicResource BackgroundBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource ForegroundBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Padding" Value="4" />
+
+        <Setter Property="ItemContainerStyle">
+            <Setter.Value>
+                <Style TargetType="ComboBoxItem">
+                    <Setter Property="Background" Value="{DynamicResource BackgroundBrush}" />
+                    <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
+                    <Setter Property="Padding" Value="4" />
+
+                    <Style.Triggers>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter Property="Background" Value="{DynamicResource BackgroundBrush}" />
+                        </Trigger>
+
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Background" Value="{DynamicResource ItemHoverBrush}" />
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </Setter.Value>
+        </Setter>
+
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ComboBox">
+                    <Grid>
+                        <!-- Clickable toggle button -->
+                        <ToggleButton x:Name="ToggleButton"
+                                  Background="{TemplateBinding Background}"
+                                  BorderBrush="{TemplateBinding BorderBrush}"
+                                  BorderThickness="{TemplateBinding BorderThickness}"
+                                  Focusable="False"
+                                  IsChecked="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}}"
+                                  ClickMode="Press">
+                            <Grid>
+                                <ContentPresenter
+                                Content="{TemplateBinding SelectionBoxItem}"
+                                ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                VerticalAlignment="Center"
+                                HorizontalAlignment="Left"
+                                Margin="0"/>
+                            </Grid>
+                        </ToggleButton>
+
+                        <!-- Dropdown -->
+                        <Popup x:Name="PART_Popup"
+                           Placement="Bottom"
+                           IsOpen="{TemplateBinding IsDropDownOpen}"
+                           AllowsTransparency="True"
+                           Focusable="False">
+                            <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="1">
+                                <ScrollViewer>
+                                    <ItemsPresenter />
+                                </ScrollViewer>
+                            </Border>
+                        </Popup>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+
+
+
 
 </ResourceDictionary>

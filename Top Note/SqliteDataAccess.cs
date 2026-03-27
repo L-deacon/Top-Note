@@ -25,8 +25,8 @@ namespace Top_Note
         public static void SaveNote(NoteModel note)
         {
             using (IDbConnection cnn = new SQLiteConnection(LoadConnectionString()))
-            {
-                cnn.Execute("INSERT into Notes (Content, IsPinned, Color) values (@Content, @IsPinned, @Color)", note);
+            { 
+                cnn.Execute("INSERT into Notes (Content, IsPinned, Color, Left, Top, FontSize, Width, Height) values (@Content, @IsPinned, @Color, @Left, @Top, @FontSize, @Width, @Height)", note);
             }
         }
 
@@ -34,7 +34,7 @@ namespace Top_Note
         {
             using (IDbConnection cnn = new SQLiteConnection(LoadConnectionString()))
             {
-                cnn.Execute("UPDATE Notes SET Content = @Content, IsPinned = @IsPinned, Color = @Color WHERE Id = @Id", note);
+                cnn.Execute("UPDATE Notes SET Content = @Content, IsPinned = @IsPinned, Color = @Color, Left = @Left, Top = @Top, FontSize = @FontSize, Width = @Width, Height = @Height WHERE Id = @Id", note);
             }
         }
 

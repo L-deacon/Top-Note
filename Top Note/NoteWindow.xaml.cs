@@ -32,11 +32,39 @@ namespace Top_Note
         {
             InitializeComponent();
             DataContext = new NoteWindowViewModel(note);
+
+            this.Left = note.Left;
+            this.Top = note.Top;
+
+            this.Width = note.Width;
+            this.Height = note.Height;
         }
 
         protected override void OnMouseLeftButtonDown(MouseButtonEventArgs e)
         {
             base.OnMouseLeftButtonDown(e); DragMove();
+        }
+
+        protected override void OnLocationChanged(EventArgs e)
+        {
+            base.OnLocationChanged(e);
+
+            if (DataContext is NoteWindowViewModel vm)
+            {
+                vm.WindowLeft = this.Left;
+                vm.WindowTop = this.Top;
+            }
+        }
+
+        protected override void OnRenderSizeChanged(SizeChangedInfo sizeInfo)
+        {
+            base.OnRenderSizeChanged(sizeInfo);
+
+            if (DataContext is NoteWindowViewModel vm)
+            {
+                vm.WindowWidth = this.Width;
+                vm.WindowHeight = this.Height;
+            }
         }
     }
 }

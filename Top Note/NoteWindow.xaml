@@ -72,7 +72,17 @@
                 Foreground="Black"
                 BorderThickness="0"
                 AcceptsReturn="True"
-                TextWrapping="Wrap" Text="{Binding Content, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="0,5,0,0" FontSize="20"/>
+                TextWrapping="Wrap" Text="{Binding Content, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="0,5,0,0" FontSize="{Binding SelectedFontSize}"/>
+
+
+            <StackPanel Grid.Row="2" HorizontalAlignment="Left" Orientation="Horizontal" Margin="0" Background="{DynamicResource BackgroundBrush}">
+                <ComboBox Width="20"
+                          ItemsSource="{Binding FontSizes}"
+                          SelectedItem="{Binding SelectedFontSize}"
+                          Style="{StaticResource NoteComboBoxStyle}"
+                          Padding="2"/>
+
+            </StackPanel>
 
             <StackPanel Grid.Row="2" HorizontalAlignment="Center" Orientation="Horizontal" Margin="0">
                 <Button Command="{Binding ChangeColorCommand}" CommandParameter="#FFFF00">

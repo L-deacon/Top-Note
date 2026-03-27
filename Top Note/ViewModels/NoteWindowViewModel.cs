@@ -96,7 +96,49 @@ namespace Top_Note.ViewModels
             }
         }
 
+        public List<int> FontSizes { get; } = new() {8,16,18,20,22,24};
+
+        private int selectedFontSize = 18;
+        public int SelectedFontSize
+        {
+            get { return selectedFontSize;}
+            set
+            {
+                selectedFontSize = value;
+                RaisePropertyChanged();
+            }
+        }
+
         private int noteId = 0;
+
+
+        private double windowLeft;
+        public double WindowLeft
+        {
+            get => windowLeft;
+            set { windowLeft = value; RaisePropertyChanged(); }
+        }
+
+        private double windowTop;
+        public double WindowTop
+        {
+            get => windowTop;
+            set { windowTop = value; RaisePropertyChanged(); }
+        }
+        private double windowWidth;
+        public double WindowWidth
+        {
+            get => windowWidth;
+            set { windowWidth = value; RaisePropertyChanged(); }
+        }
+
+        private double windowHeight;
+        public double WindowHeight
+        {
+            get => windowHeight;
+            set { windowHeight = value; RaisePropertyChanged(); }
+        }
+
 
         #endregion
 
@@ -117,6 +159,11 @@ namespace Top_Note.ViewModels
             Content = note.Content ?? string.Empty;
             IsPinned = note.IsPinned;
             ColorHex = string.IsNullOrEmpty(note.Color) ? "#FFFF00" : note.Color;
+            WindowLeft = note.Left;
+            WindowTop = note.Top;
+            WindowWidth = note.Width;
+            WindowHeight = note.Height;
+            SelectedFontSize = note.FontSize > 0 ? note.FontSize : 18;
             try
             {
                 NoteColor = (Brush)new BrushConverter().ConvertFromString(ColorHex);
@@ -158,7 +205,12 @@ namespace Top_Note.ViewModels
                 Id = noteId,
                 Content = this.Content ?? string.Empty,
                 IsPinned = this.IsPinned,
-                Color = this.ColorHex ?? "#FFFF00"
+                Color = this.ColorHex ?? "#FFFF00",
+                Left = this.WindowLeft,
+                Top = this.WindowTop,
+                FontSize = this.SelectedFontSize,
+                Width = (int)this.WindowWidth,
+                Height = (int)this.WindowHeight
             };
             if (note.Content == string.Empty)
             {

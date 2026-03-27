@@ -70,7 +70,7 @@
             </Grid>
             <TextBlock Grid.Row="1" Text="No notes found. Please create a new note." 
                        Visibility="{Binding NoNotesErrorMessageBool, Converter={StaticResource BooleanToVisibilityConverter}}"
-                       Foreground="Red" VerticalAlignment="Center"></TextBlock>
+                       Foreground="Red" HorizontalAlignment="Center"></TextBlock>
             <Grid Grid.Row="2" Visibility="{Binding ShowListBox, Converter={StaticResource BooleanToVisibilityConverter}}">
                 <ListBox x:Name="NotesListBox"
                          ItemsSource="{Binding Notes}"
