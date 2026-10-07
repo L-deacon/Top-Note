@@ -1,64 +1,74 @@
-﻿using Dapper;
 using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Command;
-using System;
-using System.Collections.Generic;
-using System.Configuration;
-using System.Data;
-using System.Data.SQLite;
-using System.Linq;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
-using System.Windows.Media;
+using System.Windows.Threading;
 using Top_Note.Models;
-using Color = System.Drawing.Color;
+using Top_Note.Services;
 
 namespace Top_Note.ViewModels
 {
+    // One colour choice in the note's colour picker.
+    public class SwatchOption : ObservableObject
+    {
+        public SwatchOption(NoteColor color) => Color = color;
+
+        public NoteColor Color { get; }
+
+        private bool isSelected;
+        public bool IsSelected
+        {
+            get => isSelected;
+            set => Set(ref isSelected, value);
+        }
+    }
+
     public class NoteWindowViewModel : ViewModelBase
     {
+        public const int DefaultFontSize = 15;
+        public static readonly int[] FontSizeSteps = { 10, 12, 14, 15, 16, 18, 20, 22, 24, 28, 32 };
+
         #region Properties
 
         private bool isPinned;
-
         public bool IsPinned
         {
             get { return isPinned; }
             set
             {
-                if (IsPinned == value)
+                if (isPinned == value)
                 {
                     return;
                 }
-                else
+                isPinned = value;
+                RaisePropertyChanged();
+                // Pinning is saved straight away so a pinned note is reopened on top after a restart.
+                if (initialised && !isDeleted)
                 {
-                    isPinned = value;
-                    RaisePropertyChanged();
+                    isDirty = true;
+                    listChanged = true;
+                    contentChanged = true;
+                    Flush();
                 }
             }
         }
 
-        private Brush noteColor = Brushes.Yellow;
-
-        public Brush NoteColor
+        private NoteColor colors = NotePalette.Yellow;
+        public NoteColor Colors
         {
-            get { return noteColor; }
-            set
+            get => colors;
+            private set
             {
-                if (noteColor == value)
+                colors = value;
+                RaisePropertyChanged();
+                foreach (var swatch in Swatches)
                 {
-                    return;
-                }
-                else
-                {
-                    noteColor = value;
-                    RaisePropertyChanged();
+                    swatch.IsSelected = swatch.Color.Key == value.Key;
                 }
             }
         }
+
+        public List<SwatchOption> Swatches { get; } = NotePalette.All.Select(c => new SwatchOption(c)).ToList();
 
         private string content = string.Empty;
         public string Content
@@ -70,15 +80,19 @@ namespace Top_Note.ViewModels
                 {
                     return;
                 }
-                else
-                {
-                    content = value;
-                    RaisePropertyChanged();
-                }
+                content = value ?? string.Empty;
+                RaisePropertyChanged();
+                RaisePropertyChanged(nameof(Title));
+                RaisePropertyChanged(nameof(MetaText));
+                listChanged = true;
+                contentChanged = true;
+                QueueSave();
             }
         }
 
-        private string colorHex = "#FFFF00";
+        public string Title => NoteText.Title(Content);
+
+        private string colorHex = NotePalette.DefaultHex;
         public string ColorHex
         {
             get { return colorHex; }
@@ -88,90 +102,187 @@ namespace Top_Note.ViewModels
                 {
                     return;
                 }
-                else
-                {
-                    colorHex = value;
-                    RaisePropertyChanged();
-                }
+                colorHex = value;
+                RaisePropertyChanged();
+                listChanged = true;
+                contentChanged = true;
+                QueueSave();
             }
         }
 
-        public List<int> FontSizes { get; } = new() {8,16,18,20,22,24};
-
-        private int selectedFontSize = 18;
+        private int selectedFontSize = DefaultFontSize;
         public int SelectedFontSize
         {
-            get { return selectedFontSize;}
+            get { return selectedFontSize; }
             set
             {
+                value = Math.Clamp(value, FontSizeSteps[0], FontSizeSteps[^1]);
+                if (selectedFontSize == value)
+                {
+                    return;
+                }
                 selectedFontSize = value;
                 RaisePropertyChanged();
+                QueueSave();
+            }
+        }
+
+        private bool isCollapsed;
+        public bool IsCollapsed
+        {
+            get => isCollapsed;
+            set
+            {
+                if (isCollapsed == value) return;
+                isCollapsed = value;
+                RaisePropertyChanged();
+                QueueSave();
             }
         }
 
         private int noteId = 0;
+        public int NoteId => noteId;
 
+        private string? createdUtc;
+        private string? modifiedUtc;
+
+        // Footer text: when the note was last edited, plus the word count.
+        public string MetaText
+        {
+            get
+            {
+                int words = NoteText.WordCount(Content);
+                var edited = BackupService.TryParse(modifiedUtc);
+                string wordText = words == 1 ? "1 word" : $"{words} words";
+                return edited == null ? wordText : $"Edited {RelativeTime.Format(edited.Value)}  ·  {wordText}";
+            }
+        }
+
+        public string MetaToolTip
+        {
+            get
+            {
+                var created = BackupService.TryParse(createdUtc);
+                var edited = BackupService.TryParse(modifiedUtc);
+                if (created == null && edited == null) return "Not saved yet";
+                var parts = new List<string>();
+                if (created != null) parts.Add($"Created {created:d MMM yyyy HH:mm}");
+                if (edited != null) parts.Add($"Edited {edited:d MMM yyyy HH:mm}");
+                return string.Join("\n", parts);
+            }
+        }
 
         private double windowLeft;
         public double WindowLeft
         {
             get => windowLeft;
-            set { windowLeft = value; RaisePropertyChanged(); }
+            set
+            {
+                if (windowLeft == value) return;
+                windowLeft = value;
+                RaisePropertyChanged();
+                QueueSave();
+            }
         }
 
         private double windowTop;
         public double WindowTop
         {
             get => windowTop;
-            set { windowTop = value; RaisePropertyChanged(); }
+            set
+            {
+                if (windowTop == value) return;
+                windowTop = value;
+                RaisePropertyChanged();
+                QueueSave();
+            }
         }
-        private double windowWidth;
+
+        private double windowWidth = 300;
         public double WindowWidth
         {
             get => windowWidth;
-            set { windowWidth = value; RaisePropertyChanged(); }
+            set
+            {
+                if (windowWidth == value) return;
+                windowWidth = value;
+                RaisePropertyChanged();
+                QueueSave();
+            }
         }
 
-        private double windowHeight;
+        private double windowHeight = 300;
         public double WindowHeight
         {
             get => windowHeight;
-            set { windowHeight = value; RaisePropertyChanged(); }
+            set
+            {
+                if (windowHeight == value) return;
+                windowHeight = value;
+                RaisePropertyChanged();
+                QueueSave();
+            }
         }
 
+        // Debounced autosave: every change restarts the timer, the note is written once typing pauses.
+        private readonly DispatcherTimer saveTimer = new() { Interval = TimeSpan.FromMilliseconds(700) };
+        private bool initialised;
+        private bool isDirty;
+        private bool listChanged;
+        private bool contentChanged;
+        private bool isDeleted;
 
         #endregion
 
         #region Constructor
+
         public NoteWindowViewModel()
         {
             TogglePinCommand = new RelayCommand(TogglePin);
-            SaveNoteCommand = new RelayCommand(SaveNote);
+            SaveNoteCommand = new RelayCommand(Flush);
+            CloseNoteCommand = new RelayCommand(CloseWindow);
+            NewNoteCommand = new RelayCommand(() => NoteWindowManager.OpenNew());
             ChangeColorCommand = new RelayCommand<string>(ChangeColor);
+            BiggerTextCommand = new RelayCommand(() => StepFontSize(+1));
+            SmallerTextCommand = new RelayCommand(() => StepFontSize(-1));
+            ResetTextSizeCommand = new RelayCommand(() => SelectedFontSize = DefaultFontSize);
+            DuplicateCommand = new RelayCommand(Duplicate);
+            CopyTextCommand = new RelayCommand(() => ClipboardHelper.TrySetText(Content));
+            DeleteCommand = new RelayCommand(Delete);
+            ShowListCommand = new RelayCommand(() => (Application.Current as App)?.ShowMainWindow());
 
-            ColorHex = "#FFFF00";
+            saveTimer.Tick += (_, _) => Flush();
+
+            Colors = NotePalette.Resolve(ColorHex);
+            listChanged = false;
+            contentChanged = false;
+            initialised = true;
         }
 
         public NoteWindowViewModel(NoteModel note) : this()
         {
             if (note == null) return;
+
+            initialised = false;
             noteId = note.Id;
             Content = note.Content ?? string.Empty;
-            IsPinned = note.IsPinned;
-            ColorHex = string.IsNullOrEmpty(note.Color) ? "#FFFF00" : note.Color;
+            isPinned = note.IsPinned;
+            // Keep the stored value (even a legacy colour) until the user picks a new one.
+            colorHex = string.IsNullOrEmpty(note.Color) ? NotePalette.DefaultHex : note.Color;
+            Colors = NotePalette.Resolve(colorHex);
             WindowLeft = note.Left;
             WindowTop = note.Top;
-            WindowWidth = note.Width;
-            WindowHeight = note.Height;
-            SelectedFontSize = note.FontSize > 0 ? note.FontSize : 18;
-            try
-            {
-                NoteColor = (Brush)new BrushConverter().ConvertFromString(ColorHex);
-            }
-            catch
-            {
-                NoteColor = Brushes.Yellow;
-            }
+            WindowWidth = note.Width > 0 ? note.Width : 300;
+            WindowHeight = note.Height > 0 ? note.Height : 300;
+            SelectedFontSize = note.FontSize > 0 ? note.FontSize : DefaultFontSize;
+            isCollapsed = note.IsCollapsed;
+            createdUtc = note.CreatedUtc;
+            modifiedUtc = note.ModifiedUtc;
+            // Loading the note isn't an edit.
+            isDirty = false;
+            listChanged = false;
+            contentChanged = false;
+            initialised = true;
         }
 
         #endregion
@@ -183,73 +294,178 @@ namespace Top_Note.ViewModels
             IsPinned = !IsPinned;
         }
 
-        private void ChangeColor(string hex)
+        public void ChangeColor(string? hex)
         {
-            try
-            {
-                ColorHex = hex;
-                NoteColor = (Brush)new BrushConverter().ConvertFromString(hex);
-            }
-            catch
-            {
-                ColorHex = "#FFFF00";
-                NoteColor = Brushes.Yellow;
-            }
-            
+            var color = NotePalette.Resolve(hex);
+            ColorHex = color.BodyHex;
+            Colors = color;
         }
 
-        private void SaveNote()
+        private void StepFontSize(int direction)
         {
-            var note = new NoteModel
+            int next = direction > 0
+                ? FontSizeSteps.FirstOrDefault(s => s > SelectedFontSize, FontSizeSteps[^1])
+                : FontSizeSteps.LastOrDefault(s => s < SelectedFontSize, FontSizeSteps[0]);
+            SelectedFontSize = next;
+        }
+
+        private void Duplicate()
+        {
+            Flush();
+            // Nothing typed yet: a copy would just be another blank note.
+            if (noteId == 0 && string.IsNullOrWhiteSpace(Content)) return;
+            var model = ToModel();
+            int id = SqliteDataAccess.DuplicateNote(model);
+            if (SqliteDataAccess.GetNote(id) is { } copy)
             {
-                Id = noteId,
-                Content = this.Content ?? string.Empty,
-                IsPinned = this.IsPinned,
-                Color = this.ColorHex ?? "#FFFF00",
-                Left = this.WindowLeft,
-                Top = this.WindowTop,
-                FontSize = this.SelectedFontSize,
-                Width = (int)this.WindowWidth,
-                Height = (int)this.WindowHeight
-            };
-            if (note.Content == string.Empty)
+                NoteWindowManager.Open(copy);
+            }
+            NotesChanged?.Invoke(this, EventArgs.Empty);
+        }
+
+        private void Delete()
+        {
+            Flush();
+            if (noteId == 0)
             {
+                // Never saved: nothing to keep.
+                MarkDeleted();
+                CloseWindow();
                 return;
             }
+            NoteActions.MoveToTrash(noteId);
+        }
 
-            if (note.Id > 0)
+        private void QueueSave()
+        {
+            if (!initialised || isDeleted) return;
+            isDirty = true;
+            saveTimer.Stop();
+            saveTimer.Start();
+        }
+
+        private NoteModel ToModel() => new()
+        {
+            Id = noteId,
+            Content = Content ?? string.Empty,
+            IsPinned = IsPinned,
+            Color = ColorHex ?? NotePalette.DefaultHex,
+            Left = WindowLeft,
+            Top = WindowTop,
+            FontSize = SelectedFontSize,
+            Width = (int)Math.Round(WindowWidth),
+            Height = (int)Math.Round(WindowHeight),
+            IsCollapsed = IsCollapsed,
+            CreatedUtc = createdUtc,
+        };
+
+        // Writes the note now. Called by the autosave timer, Ctrl+S, pin changes and on close.
+        public void Flush()
+        {
+            saveTimer.Stop();
+            if (!initialised || isDeleted) return;
+            if (!isDirty) return;
+
+            // Don't create database rows for notes that were never typed in.
+            if (noteId == 0 && string.IsNullOrWhiteSpace(Content)) return;
+
+            var note = ToModel();
+            // Only real edits move the "edited" time; moving or resizing a note doesn't.
+            note.ModifiedUtc = contentChanged || noteId == 0 ? SqliteDataAccess.Now() : null;
+
+            if (noteId > 0)
             {
                 SqliteDataAccess.UpdateNote(note);
             }
             else
             {
-                SqliteDataAccess.SaveNote(note);
+                noteId = SqliteDataAccess.SaveNote(note);
+                createdUtc = note.CreatedUtc;
+                NoteWindowManager.Register(this);
+                listChanged = true;
             }
 
-            // refresh main list
-            var mainVm = Application.Current?.MainWindow?.DataContext as MainWindowViewModel;
-            mainVm?.LoadNotes();
-
-            // close the note window that hosts this VM
-            foreach (Window w in Application.Current.Windows)
+            if (note.ModifiedUtc != null)
             {
-                if (w.DataContext == this)
-                {
-                    w.Close();
-                    break;
-                }
+                modifiedUtc = note.ModifiedUtc;
+                RaisePropertyChanged(nameof(MetaText));
+                RaisePropertyChanged(nameof(MetaToolTip));
+            }
+
+            bool wasEdit = contentChanged;
+            isDirty = false;
+            contentChanged = false;
+            if (wasEdit) Saved?.Invoke(this, EventArgs.Empty);
+
+            // Moves and resizes don't change the list, so don't refresh it for those.
+            if (listChanged)
+            {
+                listChanged = false;
+                NotesChanged?.Invoke(this, EventArgs.Empty);
             }
         }
 
+        // Called every minute so "Edited 3 min ago" stays true.
+        public void RefreshTime() => RaisePropertyChanged(nameof(MetaText));
+
+        // Position/size of a new window before the user has touched it; not a change by itself.
+        public void SetInitialGeometry(double left, double top, double width, double height)
+        {
+            windowLeft = left;
+            windowTop = top;
+            windowWidth = width;
+            windowHeight = height;
+        }
+
+        // Pin/colour changed from the notes list while this note is open.
+        public void ApplyExternalChange(NoteModel note)
+        {
+            initialised = false;
+            isPinned = note.IsPinned;
+            RaisePropertyChanged(nameof(IsPinned));
+            colorHex = note.Color;
+            Colors = NotePalette.Resolve(note.Color);
+            RaisePropertyChanged(nameof(ColorHex));
+            modifiedUtc = note.ModifiedUtc;
+            RaisePropertyChanged(nameof(MetaText));
+            initialised = true;
+        }
+
+        // The note was deleted: stop writing it back.
+        public void MarkDeleted()
+        {
+            saveTimer.Stop();
+            isDeleted = true;
+        }
+
+        private void CloseWindow()
+        {
+            Application.Current.Windows.OfType<Window>().FirstOrDefault(w => w.DataContext == this)?.Close();
+        }
+
+        // Raised after a save that changes what the notes list shows.
+        public static event EventHandler? NotesChanged;
+
+        // Raised after the user's edits are written, for the "Saved" hint.
+        public event EventHandler? Saved;
+
         #endregion
 
-        #region RelayCommands 
+        #region RelayCommands
 
         public ICommand TogglePinCommand { get; }
         public ICommand SaveNoteCommand { get; }
+        public ICommand CloseNoteCommand { get; }
+        public ICommand NewNoteCommand { get; }
         public ICommand ChangeColorCommand { get; }
+        public ICommand BiggerTextCommand { get; }
+        public ICommand SmallerTextCommand { get; }
+        public ICommand ResetTextSizeCommand { get; }
+        public ICommand DuplicateCommand { get; }
+        public ICommand CopyTextCommand { get; }
+        public ICommand DeleteCommand { get; }
+        public ICommand ShowListCommand { get; }
 
         #endregion
-
     }
 }

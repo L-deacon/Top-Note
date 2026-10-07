@@ -1,127 +1,276 @@
-﻿<Window x:Class="Top_Note.MainWindow"
+<Window x:Class="Top_Note.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:Top_Note"
-        xmlns:conv="clr-namespace:Top_Note.Converters"
         xmlns:viewModels="clr-namespace:Top_Note.ViewModels"
         d:DataContext="{d:DesignInstance viewModels:MainWindowViewModel}"
         mc:Ignorable="d"
-        Title="Top Note" Height="450" Width="800" Background="{DynamicResource BackgroundBrush}">
-    <Window.Resources>
-        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
-        <conv:StringToBrushConverter x:Key="StringToBrushConverter" />
-    </Window.Resources>
+        Title="Top Note" Width="400" Height="640" MinWidth="340" MinHeight="420"
+        WindowStartupLocation="CenterScreen"
+        Background="{DynamicResource WindowBg}"
+        Foreground="{DynamicResource TextPrimary}"
+        FontFamily="{StaticResource UiFont}"
+        FontSize="13"
+        UseLayoutRounding="True"
+        TextOptions.TextFormattingMode="Ideal">
+
+    <Window.InputBindings>
+        <KeyBinding Modifiers="Ctrl" Key="N" Command="{Binding NewNoteCommand}" />
+        <KeyBinding Key="F5" Command="{Binding RefreshListCommand}" />
+        <KeyBinding Modifiers="Ctrl" Key="F" Command="{Binding FocusSearchCommand}" />
+    </Window.InputBindings>
+
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="60"/>
-            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*"></ColumnDefinition>
-            <ColumnDefinition Width="Auto"></ColumnDefinition>
-        </Grid.ColumnDefinitions>
 
-        <!--Tool Bar-->
-        <Grid Grid.Row="0" Background="{DynamicResource ToolBarBackGroundColor}">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="60"/>
-            </Grid.RowDefinitions>
+        <!-- Header -->
+        <Grid Grid.Row="0" Margin="16,14,12,10">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"></ColumnDefinition>
-                <ColumnDefinition Width="*"></ColumnDefinition>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
-
-
-            <Grid HorizontalAlignment="Left" Grid.Row="0" Grid.Column="0" Background="{DynamicResource ToolBarBackGroundColor}">
-                <Button BorderThickness="0" Style="{DynamicResource ToolBarButtonStyle}" Command="{Binding NewNoteCommand}">
-                    <Grid Background="Transparent">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-                        <Image Source="{DynamicResource AddNoteIcon}" VerticalAlignment="Top"></Image>
-
-                        <TextBlock VerticalAlignment="Bottom" Grid.Row="1">New Note</TextBlock>
-                    </Grid>
-                </Button>
-            </Grid>
-
-            <Grid HorizontalAlignment="Right" Grid.Row="0" Grid.Column="1" Background="{DynamicResource ToolBarBackGroundColor}">
-                <Button BorderThickness="0" Command="{Binding ToggleThemeCommand}" Style="{DynamicResource ToolBarButtonStyle}">
-                    <Image Source="{DynamicResource ThemeToggleIcon}" HorizontalAlignment="Right" Stretch="Uniform"></Image>
-                </Button>
-            </Grid>
+            <StackPanel VerticalAlignment="Center">
+                <TextBlock Text="Notes" FontSize="20" FontWeight="SemiBold" />
+                <TextBlock Text="{Binding Summary}" FontSize="12" Foreground="{DynamicResource TextSecondary}" Margin="0,1,0,0" />
+            </StackPanel>
+            <Button Grid.Column="1" Style="{StaticResource AccentButton}" Tag="&#xE710;" Content="New note"
+                    Command="{Binding NewNoteCommand}" VerticalAlignment="Center"
+                    ToolTip="New note (Ctrl+N, or Ctrl+Alt+N from anywhere)" />
+            <Button x:Name="MoreButton" Grid.Column="2" Style="{StaticResource IconButton}" Content="&#xE712;"
+                    Margin="4,0,0,0" VerticalAlignment="Center" ToolTip="More" Click="MoreButton_Click" />
         </Grid>
 
-        <Grid Grid.Row="1" Margin="5,5,5,5">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="30"></RowDefinition>
-                <RowDefinition Height="20"></RowDefinition>
-                <RowDefinition Height="*"></RowDefinition>
-            </Grid.RowDefinitions>
+        <!-- Search -->
+        <TextBox x:Name="SearchBox" Grid.Row="1" Margin="16,0,16,10" Style="{StaticResource SearchBox}" Tag="Search notes"
+                 Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" PreviewKeyDown="SearchBox_PreviewKeyDown" />
 
-            <Grid>
-                <TextBlock Text="Notes" HorizontalAlignment="Center" FontSize="20"></TextBlock>
-                <Button HorizontalAlignment="Right" Style="{DynamicResource ToolBarButtonStyle}" Command="{Binding RefreshListCommand}">
-                    <Image Source="{DynamicResource RefreshIcon}"></Image>
+        <!-- Filters + sort -->
+        <Grid Grid.Row="2" Margin="16,0,12,10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <StackPanel Orientation="Horizontal">
+                <RadioButton Style="{StaticResource PillRadio}" GroupName="Filter" IsChecked="{Binding IsAllFilter}">
+                    <TextBlock>All <Run Text="{Binding AllCount, Mode=OneWay}" FontSize="12" /></TextBlock>
+                </RadioButton>
+                <RadioButton Style="{StaticResource PillRadio}" GroupName="Filter" IsChecked="{Binding IsPinnedFilter}">
+                    <TextBlock>Pinned <Run Text="{Binding PinnedCount, Mode=OneWay}" FontSize="12" /></TextBlock>
+                </RadioButton>
+                <RadioButton Style="{StaticResource PillRadio}" GroupName="Filter" IsChecked="{Binding IsTrashFilter}">
+                    <TextBlock>Trash <Run Text="{Binding TrashCount, Mode=OneWay}" FontSize="12" /></TextBlock>
+                </RadioButton>
+            </StackPanel>
+            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                <Button Style="{StaticResource TextLinkButton}" Content="Empty trash" Command="{Binding EmptyTrashCommand}"
+                        Foreground="{DynamicResource Danger}" FontSize="12" VerticalAlignment="Center"
+                        Visibility="{Binding IsTrashFilter, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                <Button x:Name="SortButton" Style="{StaticResource IconButton}" Content="&#xE8CB;" Click="SortButton_Click">
+                    <Button.ToolTip>
+                        <TextBlock>Sort: <Run Text="{Binding SortLabel, Mode=OneWay}" /></TextBlock>
+                    </Button.ToolTip>
                 </Button>
-            </Grid>
-            <TextBlock Grid.Row="1" Text="No notes found. Please create a new note." 
-                       Visibility="{Binding NoNotesErrorMessageBool, Converter={StaticResource BooleanToVisibilityConverter}}"
-                       Foreground="Red" HorizontalAlignment="Center"></TextBlock>
-            <Grid Grid.Row="2" Visibility="{Binding ShowListBox, Converter={StaticResource BooleanToVisibilityConverter}}">
-                <ListBox x:Name="NotesListBox"
-                         ItemsSource="{Binding Notes}"
-                         Foreground="{DynamicResource ForegroundBrush}"
-                         Background="{DynamicResource BackgroundBrush}"
-                         ScrollViewer.VerticalScrollBarVisibility="Auto"
-                         MaxHeight="300"
-                         MouseDoubleClick="NotesListBox_MouseDoubleClick">
+            </StackPanel>
+        </Grid>
 
-                    <ListBox.ItemContainerStyle>
-                        <Style TargetType="ListBoxItem">
-                            <Setter Property="Background" Value="{Binding Color, Converter={StaticResource StringToBrushConverter}}"/>
-                            <Setter Property="Padding" Value="2"/>
-                            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-                            <Setter Property="BorderThickness" Value="0"/>
-                            <Setter Property="Foreground" Value="{DynamicResource ForegroundBrush}" />
-                            <Style.Triggers>
-                                <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter Property="Background" Value="{DynamicResource ItemHoverBrush}" />
-                                </Trigger>
-                                <Trigger Property="IsSelected" Value="True">
-                                    <Setter Property="Background" Value="{DynamicResource ItemSelectedBrush}" />
-                                    <Setter Property="Foreground" Value="{DynamicResource BackgroundBrush}" />
-                                </Trigger>
-                            </Style.Triggers>
-                        </Style>
-                    </ListBox.ItemContainerStyle>
+        <!-- Notes -->
+        <ListBox x:Name="NotesListBox" Grid.Row="3"
+                 ItemsSource="{Binding NotesView}"
+                 Background="Transparent" BorderThickness="0" Padding="13,0,7,9"
+                 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                 ScrollViewer.CanContentScroll="True"
+                 VirtualizingPanel.IsVirtualizing="True"
+                 VirtualizingPanel.ScrollUnit="Pixel"
+                 FocusVisualStyle="{x:Null}"
+                 MouseDoubleClick="NotesListBox_MouseDoubleClick"
+                 KeyDown="NotesListBox_KeyDown"
+                 ContextMenuOpening="NotesListBox_ContextMenuOpening">
+            <ListBox.ContextMenu>
+                <ContextMenu />
+            </ListBox.ContextMenu>
+            <ListBox.ItemContainerStyle>
+                <Style TargetType="ListBoxItem">
+                    <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                    <Setter Property="Padding" Value="0" />
+                    <Setter Property="Margin" Value="0,0,6,2" />
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="ListBoxItem">
+                                <ContentPresenter />
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </ListBox.ItemContainerStyle>
+            <ListBox.ItemTemplate>
+                <DataTemplate DataType="{x:Type viewModels:NoteCardViewModel}">
+                    <Grid x:Name="CardRoot" Cursor="Hand" Background="Transparent">
+                        <Border x:Name="Card" Margin="3" CornerRadius="8" Background="{Binding Colors.Body}"
+                                BorderBrush="{DynamicResource CardStroke}" BorderThickness="1">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="4" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <Border Background="{Binding Colors.Swatch}" CornerRadius="7,7,0,0" />
 
-                    <ListBox.ItemTemplate>
-                        <DataTemplate>
-                            <Grid Height="30">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
+                                <Grid Grid.Row="1" Margin="12,8,6,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="{Binding Title}" FontSize="14" FontWeight="SemiBold" Foreground="{Binding Colors.Ink}"
+                                               TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                                    <Grid Grid.Column="1" Height="24">
+                                        <!-- Status: pinned / open. Hidden behind the action buttons on hover. -->
+                                        <StackPanel x:Name="Status" Orientation="Horizontal" VerticalAlignment="Center"
+                                                    HorizontalAlignment="Right" Margin="0,0,4,0">
+                                            <Ellipse Width="6" Height="6" Fill="{Binding Colors.Swatch}" Margin="6,0,0,0"
+                                                     ToolTip="Open on screen"
+                                                     Visibility="{Binding IsOpen, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                            <TextBlock Text="&#xE840;" Style="{StaticResource Glyph}" FontSize="12" Margin="8,0,0,0"
+                                                       Foreground="{Binding Colors.Ink}" Opacity="0.7" ToolTip="Pinned on top"
+                                                       Visibility="{Binding IsPinned, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                        </StackPanel>
+                                        <StackPanel x:Name="Actions" Orientation="Horizontal" Opacity="0" IsHitTestVisible="False">
+                                            <StackPanel.Resources>
+                                                <Style TargetType="Button" BasedOn="{StaticResource IconButton}">
+                                                    <Setter Property="Width" Value="28" />
+                                                    <Setter Property="Height" Value="24" />
+                                                    <Setter Property="FontSize" Value="12" />
+                                                    <Setter Property="Foreground" Value="{Binding Colors.Ink}" />
+                                                    <Setter Property="CommandParameter" Value="{Binding}" />
+                                                </Style>
+                                            </StackPanel.Resources>
+                                            <Button x:Name="PinAction" Content="&#xE718;" ToolTip="Pin on top (Ctrl+P)"
+                                                    Command="{Binding DataContext.TogglePinCommand, RelativeSource={RelativeSource AncestorType=Window}}" />
+                                            <Button x:Name="OpenAction" Content="&#xE8A7;" ToolTip="Open (Enter)"
+                                                    Command="{Binding DataContext.OpenNoteCommand, RelativeSource={RelativeSource AncestorType=Window}}" />
+                                            <Button x:Name="DeleteAction" Content="&#xE74D;" ToolTip="Move to Trash (Del)"
+                                                    Command="{Binding DataContext.DeleteNoteCommand, RelativeSource={RelativeSource AncestorType=Window}}" />
+                                        </StackPanel>
+                                    </Grid>
+                                </Grid>
 
-                                <TextBlock Text="{Binding Content}" TextWrapping="Wrap" FontSize="14" VerticalAlignment="Center"/>
-
-                                <Button Grid.Column="1"
-                                        Style="{DynamicResource ListItemButtonStyle}"
-                                        ToolTip="Delete"
-                                        Command="{Binding DataContext.DeleteNoteCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                        CommandParameter="{Binding}"
-                                        Margin="8,0,0,0">
-                                    <Image Width="20" Height="20" Source="{DynamicResource DeleteIcon}"/>
-                                </Button>
+                                <TextBlock Grid.Row="2" Margin="12,2,12,0" Text="{Binding Snippet}" FontSize="13"
+                                           Foreground="{Binding Colors.Ink}" Opacity="0.78" TextWrapping="Wrap"
+                                           TextTrimming="CharacterEllipsis" MaxHeight="38"
+                                           Visibility="{Binding HasSnippet, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                <TextBlock Grid.Row="3" Margin="12,6,12,10" Text="{Binding MetaLine}" FontSize="11"
+                                           Foreground="{Binding Colors.Ink}" Opacity="0.6" TextTrimming="CharacterEllipsis" />
                             </Grid>
-                        </DataTemplate>
-                    </ListBox.ItemTemplate>
-                </ListBox>
-            </Grid>
+                        </Border>
+                        <Border x:Name="HoverOverlay" Margin="3" CornerRadius="8" Background="#0D000000" Opacity="0" IsHitTestVisible="False" />
+                        <Border x:Name="FocusRing" CornerRadius="11" BorderThickness="2"
+                                BorderBrush="{DynamicResource TextPrimary}" Opacity="0" IsHitTestVisible="False" />
+                    </Grid>
+                    <DataTemplate.Triggers>
+                        <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=ListBoxItem}}" Value="True">
+                            <DataTrigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="HoverOverlay" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.1" />
+                                        <DoubleAnimation Storyboard.TargetName="Actions" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.1" />
+                                        <DoubleAnimation Storyboard.TargetName="Status" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.1" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </DataTrigger.EnterActions>
+                            <DataTrigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="HoverOverlay" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.15" />
+                                        <DoubleAnimation Storyboard.TargetName="Actions" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.15" />
+                                        <DoubleAnimation Storyboard.TargetName="Status" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.15" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </DataTrigger.ExitActions>
+                            <Setter TargetName="Actions" Property="IsHitTestVisible" Value="True" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=ListBoxItem}}" Value="True">
+                            <Setter TargetName="FocusRing" Property="Opacity" Value="1" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding IsPinned}" Value="True">
+                            <Setter TargetName="PinAction" Property="Content" Value="&#xE77A;" />
+                            <Setter TargetName="PinAction" Property="ToolTip" Value="Unpin (Ctrl+P)" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding IsTrashed}" Value="True">
+                            <Setter TargetName="Card" Property="Opacity" Value="0.75" />
+                            <Setter TargetName="PinAction" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="OpenAction" Property="Content" Value="&#xE777;" />
+                            <Setter TargetName="OpenAction" Property="ToolTip" Value="Restore" />
+                            <Setter TargetName="DeleteAction" Property="ToolTip" Value="Delete forever" />
+                        </DataTrigger>
+                    </DataTemplate.Triggers>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+
+        <!-- Empty state -->
+        <StackPanel Grid.Row="3" MaxWidth="260" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,40"
+                    Visibility="{Binding IsEmpty, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <TextBlock Text="{Binding EmptyGlyph}" Style="{StaticResource Glyph}" FontSize="48" Foreground="{DynamicResource TextTertiary}" />
+            <TextBlock Text="{Binding EmptyTitle}" FontSize="16" FontWeight="SemiBold" Margin="0,14,0,4"
+                       HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" />
+            <TextBlock Text="{Binding EmptyMessage}" Foreground="{DynamicResource TextSecondary}"
+                       TextAlignment="Center" TextWrapping="Wrap" />
+            <Button Style="{StaticResource AccentButton}" Tag="&#xE710;" Content="New note" Command="{Binding NewNoteCommand}"
+                    HorizontalAlignment="Center" Margin="0,16,0,0"
+                    Visibility="{Binding EmptyShowsNewButton, Converter={StaticResource BooleanToVisibilityConverter}}" />
+            <Button Style="{StaticResource TextLinkButton}" Content="Clear search" Command="{Binding ClearSearchCommand}"
+                    HorizontalAlignment="Center" Margin="0,10,0,0"
+                    Visibility="{Binding HasSearch, Converter={StaticResource BooleanToVisibilityConverter}}" />
+        </StackPanel>
+
+        <!-- Snackbar: "Note moved to Trash · Undo" -->
+        <Grid x:Name="Snackbar" Grid.Row="3" VerticalAlignment="Bottom" Margin="16,0,16,16" Opacity="0"
+              IsHitTestVisible="False">
+            <Grid.RenderTransform>
+                <TranslateTransform x:Name="SnackbarShift" Y="12" />
+            </Grid.RenderTransform>
+            <Border CornerRadius="8" Background="{DynamicResource SnackbarBg}">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="16" ShadowDepth="4" Direction="270" Opacity="0.3" />
+                </Border.Effect>
+            </Border>
+            <Border CornerRadius="8" Background="{DynamicResource SnackbarBg}" Padding="16,6,6,6">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="{Binding SnackbarText}" Foreground="{DynamicResource SnackbarText}" VerticalAlignment="Center" />
+                    <Button Grid.Column="1" Style="{StaticResource TextLinkButton}" Content="Undo" Command="{Binding UndoDeleteCommand}"
+                            Foreground="{DynamicResource SnackbarAccent}" ToolTip="Undo (Ctrl+Z)" />
+                    <Button Grid.Column="2" Style="{StaticResource IconButton}" Content="&#xE711;" FontSize="12"
+                            Width="28" Height="28" Foreground="{DynamicResource SnackbarText}" Command="{Binding DismissSnackbarCommand}"
+                            ToolTip="Dismiss" />
+                </Grid>
+            </Border>
         </Grid>
+
+        <!-- Footer -->
+        <Border Grid.Row="4" Height="32" BorderThickness="0,1,0,0" BorderBrush="{DynamicResource Stroke}" Padding="16,0"
+                ToolTip="Closing this window keeps Top Note running in the system tray.">
+            <Grid>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="&#xE73E;" Style="{StaticResource Glyph}" FontSize="11" Foreground="{DynamicResource Success}" Margin="0,1,6,0" />
+                    <TextBlock Text="Saves automatically" FontSize="11" Foreground="{DynamicResource TextTertiary}" />
+                </StackPanel>
+                <TextBlock Text="Ctrl+Alt+N  new note from anywhere" FontSize="11" Foreground="{DynamicResource TextTertiary}"
+                           HorizontalAlignment="Right" VerticalAlignment="Center" />
+            </Grid>
+        </Border>
     </Grid>
 </Window>

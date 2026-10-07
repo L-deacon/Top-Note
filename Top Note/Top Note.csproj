@@ -8,6 +8,8 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
+    <!-- Only for the tray icon (NotifyIcon); WinForms global usings are removed below to avoid name clashes. -->
+    <UseWindowsForms>true</UseWindowsForms>
     <ApplicationIcon>TopNoteIcon.ico</ApplicationIcon>
 	  <PlatformTarget>x64</PlatformTarget>
 	  <RuntimeIdentifiers>win-x86;win-x64</RuntimeIdentifiers>
@@ -18,61 +20,24 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Fonts\Roboto.ttf" />
-    <None Remove="Images\Dark\AddNoteImage.png" />
-    <None Remove="Images\Dark\pinnedDark.png" />
-    <None Remove="Images\Dark\refreshDark.png" />
-    <None Remove="Images\Dark\saveDark.png" />
-    <None Remove="Images\Dark\unpinnedDark.png" />
-    <None Remove="Images\delete.png" />
-    <None Remove="Images\Light\pinnedLight.png" />
-    <None Remove="Images\Light\refreshLight.png" />
-    <None Remove="Images\Light\saveLight.png" />
-    <None Remove="Images\Light\unpinnedLight.png" />
-    <None Remove="Images\moon.png" />
-    <None Remove="Images\NotesColors\blueSquare.png" />
-    <None Remove="Images\NotesColors\greenSquare.png" />
-    <None Remove="Images\NotesColors\orangeSquare.png" />
-    <None Remove="Images\NotesColors\purpleSquare.png" />
-    <None Remove="Images\NotesColors\redSquare.png" />
-    <None Remove="Images\NotesColors\yellowSquare.png" />
-    <None Remove="Images\sun.png" />
     <None Remove="NotesDB.db" />
   </ItemGroup>
 
+  <!-- Notes are stored in %LocalAppData%TopNote, so the dev database is no longer shipped
+       (shipping it overwrote users' notes on every ClickOnce update). -->
   <ItemGroup>
-    <Content Include="NotesDB.db">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
     <Content Include="TopNoteIcon.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Remove="System.Windows.Forms" />
+    <Using Remove="System.Drawing" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Dapper" Version="2.1.66" />
     <PackageReference Include="MvvmLightLibs" Version="5.4.1.1" />
     <PackageReference Include="System.Data.SQLite.Core" Version="1.0.119" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Resource Include="Fonts\Roboto.ttf" />
-    <Resource Include="Images\Dark\AddNoteImage.png" />
-    <Resource Include="Images\Dark\pinnedDark.png" />
-    <Resource Include="Images\Dark\refreshDark.png" />
-    <Resource Include="Images\Dark\saveDark.png" />
-    <Resource Include="Images\Dark\unpinnedDark.png" />
-    <Resource Include="Images\delete.png" />
-    <Resource Include="Images\Light\pinnedLight.png" />
-    <Resource Include="Images\Light\refreshLight.png" />
-    <Resource Include="Images\Light\saveLight.png" />
-    <Resource Include="Images\Light\unpinnedLight.png" />
-    <Resource Include="Images\moon.png" />
-    <Resource Include="Images\NotesColors\blueSquare.png" />
-    <Resource Include="Images\NotesColors\greenSquare.png" />
-    <Resource Include="Images\NotesColors\orangeSquare.png" />
-    <Resource Include="Images\NotesColors\purpleSquare.png" />
-    <Resource Include="Images\NotesColors\redSquare.png" />
-    <Resource Include="Images\NotesColors\yellowSquare.png" />
-    <Resource Include="Images\sun.png" />
   </ItemGroup>
 
   <ItemGroup>
