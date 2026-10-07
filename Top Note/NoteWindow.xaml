@@ -83,6 +83,9 @@
                     </StackPanel>
 
                     <StackPanel x:Name="HeaderActions" Grid.Column="2" Orientation="Horizontal" Margin="0,0,2,0">
+                        <!-- Only on today's daily task note -->
+                        <Button x:Name="RefreshTasksButton" Content="&#xE72C;" Style="{StaticResource NoteIconButton}"
+                                Click="RefreshTasks_Click" ToolTip="Refresh meetings from Outlook" Visibility="Collapsed" />
                         <Button Content="&#xE710;" Style="{StaticResource NoteIconButton}" Command="{Binding NewNoteCommand}"
                                 ToolTip="New note (Ctrl+N)" />
                         <Button x:Name="ColorButton" Content="&#xE790;" Style="{StaticResource NoteIconButton}"

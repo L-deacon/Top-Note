@@ -155,6 +155,7 @@ namespace Top_Note.ViewModels
             OpenNoteCommand = new RelayCommand<NoteCardViewModel>(OpenNote);
             DeleteNoteCommand = new RelayCommand<NoteCardViewModel>(DeleteNote);
             TogglePinCommand = new RelayCommand<NoteCardViewModel>(TogglePin);
+            RefreshTasksCommand = new RelayCommand<NoteCardViewModel>(RefreshTasks);
             DuplicateCommand = new RelayCommand<NoteCardViewModel>(Duplicate);
             CopyTextCommand = new RelayCommand<NoteCardViewModel>(c => ClipboardHelper.TrySetText(c?.Content));
             SetColorCommand = new RelayCommand<object[]>(SetColor);
@@ -328,6 +329,18 @@ namespace Top_Note.ViewModels
             LoadNotes();
         }
 
+        private async void RefreshTasks(NoteCardViewModel? card)
+        {
+            // Checked fresh: the card's flag can be a day old if the list hasn't reloaded since midnight.
+            if (card == null || !DailyNoteService.IsTodaysNote(card.Id)) return;
+            if (!await DailyNoteService.RefreshNoteAsync(card.Id))
+            {
+                MessageBox.Show(Application.Current.MainWindow!,
+                    "Couldn't read the Outlook calendar. Make sure classic Outlook is installed and signed in.",
+                    "Top Note", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+        }
+
         private void SetColor(object[]? args)
         {
             if (args is not [NoteCardViewModel card, string hex]) return;
@@ -429,6 +442,7 @@ namespace Top_Note.ViewModels
         public ICommand OpenNoteCommand { get; }
         public ICommand DeleteNoteCommand { get; }
         public ICommand TogglePinCommand { get; }
+        public ICommand RefreshTasksCommand { get; }
         public ICommand DuplicateCommand { get; }
         public ICommand CopyTextCommand { get; }
         public ICommand SetColorCommand { get; }

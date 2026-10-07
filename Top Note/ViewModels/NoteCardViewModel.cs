@@ -26,6 +26,8 @@ namespace Top_Note.ViewModels
         public string Title { get; private set; } = string.Empty;
         public string Snippet { get; private set; } = string.Empty;
         public bool HasSnippet => Snippet.Length > 0;
+        // Today's daily task note gets a "refresh meetings" button.
+        public bool IsDailyNote { get; private set; }
         public string MetaLine { get; private set; } = string.Empty;
 
         // Sort keys.
@@ -59,6 +61,7 @@ namespace Top_Note.ViewModels
             Title = NoteText.Title(Model.Content);
             Snippet = NoteText.Snippet(Model.Content);
             MetaLine = BuildMeta();
+            IsDailyNote = !IsTrashed && DailyNoteService.IsTodaysNote(Id);
         }
 
         private string BuildMeta()

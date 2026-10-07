@@ -79,6 +79,8 @@ namespace Top_Note
             // handledEventsToo: the TextBox has already chosen its I-beam cursor by the time this runs.
             NoteText.AddHandler(Mouse.QueryCursorEvent, new QueryCursorEventHandler(NoteText_QueryCursor), true);
             NoteText.LostKeyboardFocus += (_, _) => RemoveTrailingEmptyItem();
+            Activated += (_, _) => UpdateRefreshTasksButton();
+            UpdateRefreshTasksButton();
 
             if (ViewModel is { } vm)
             {
@@ -533,6 +535,41 @@ namespace Top_Note
                     NoteText.CaretIndex = caret + Environment.NewLine.Length + marker.Length;
                 }
                 e.Handled = true;
+            }
+        }
+
+        // Checked on activation too, so yesterday's note loses the button once a new day's note exists.
+        private void UpdateRefreshTasksButton()
+        {
+            bool daily = ViewModel is { } vm && DailyNoteService.IsTodaysNote(vm.NoteId);
+            RefreshTasksButton.Visibility = daily ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        private async void RefreshTasks_Click(object sender, RoutedEventArgs e)
+        {
+            RefreshTasksButton.IsEnabled = false;
+            RefreshTasksButton.ToolTip = "Reading Outlook…";
+            try
+            {
+                var before = NoteText.Text;
+                var updated = await DailyNoteService.RefreshContentAsync(before);
+                if (updated == null)
+                {
+                    MessageBox.Show(this, "Couldn't read the Outlook calendar. Make sure classic Outlook is installed and signed in.",
+                        "Top Note", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+                // Skip if the user typed while Outlook was answering, rather than overwrite their edit.
+                if (NoteText.Text != before || updated == before) return;
+
+                int caret = NoteText.CaretIndex;
+                NoteText.Text = updated;
+                NoteText.CaretIndex = Math.Min(caret, updated.Length);
+            }
+            finally
+            {
+                RefreshTasksButton.IsEnabled = true;
+                RefreshTasksButton.ToolTip = "Refresh meetings from Outlook";
             }
         }
 

@@ -153,6 +153,9 @@
                                                     <Setter Property="CommandParameter" Value="{Binding}" />
                                                 </Style>
                                             </StackPanel.Resources>
+                                            <Button Content="&#xE72C;" ToolTip="Refresh meetings from Outlook"
+                                                    Visibility="{Binding IsDailyNote, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                                    Command="{Binding DataContext.RefreshTasksCommand, RelativeSource={RelativeSource AncestorType=Window}}" />
                                             <Button x:Name="PinAction" Content="&#xE718;" ToolTip="Pin on top (Ctrl+P)"
                                                     Command="{Binding DataContext.TogglePinCommand, RelativeSource={RelativeSource AncestorType=Window}}" />
                                             <Button x:Name="OpenAction" Content="&#xE8A7;" ToolTip="Open (Enter)"
