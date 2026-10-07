@@ -70,6 +70,7 @@ namespace Top_Note
             DispatcherUnhandledException += OnDispatcherUnhandledException;
             NoteWindowManager.OpenPinnedNotes();
             DailyNoteService.Start();
+            ReminderService.Start();
         }
 
         private void ListenForSecondLaunch()
@@ -183,6 +184,16 @@ namespace Top_Note
                 if (dailyNote.Checked) _ = DailyNoteService.EnsureTodayAsync();
             };
             menu.Items.Add(dailyNote);
+
+            var reminders = new Forms.ToolStripMenuItem("Task reminders")
+            {
+                Padding = new Forms.Padding(4, 3, 4, 3),
+                CheckOnClick = true,
+                Checked = ReminderService.IsEnabled,
+                ToolTipText = "Pop up 5 minutes before, and at the time of, timed tasks in today's task note"
+            };
+            reminders.CheckedChanged += (_, _) => SettingsService.Update(s => s.RemindersEnabled = reminders.Checked);
+            menu.Items.Add(reminders);
 
             menu.Items.Add(new Forms.ToolStripSeparator());
             menu.Items.Add(Item("Exit", ExitApp));

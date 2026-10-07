@@ -12,6 +12,8 @@ namespace Top_Note.Services
         public double? MainWidth { get; set; }
         public double? MainHeight { get; set; }
         public bool DailyNoteEnabled { get; set; } = true;
+        // Popups 5 minutes before and at the time of timed tasks in the daily note.
+        public bool RemindersEnabled { get; set; } = true;
         // yyyy-MM-dd of the last daily task note, and its note Id.
         public string? DailyNoteDate { get; set; }
         public int? DailyNoteId { get; set; }
