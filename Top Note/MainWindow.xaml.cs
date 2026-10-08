@@ -154,6 +154,21 @@ namespace Top_Note
             startup.IsEnabled = StartupService.IsAvailable || StartupService.IsEnabled;
             if (!startup.IsEnabled) startup.ToolTip = "Available once Top Note is installed";
             menu.Items.Add(startup);
+
+            var settings = SettingsService.Load();
+            var phone = new MenuItem { Header = "Phone notifications", Icon = new TextBlock { Text = "" } };
+            phone.Items.Add(Check("Send reminders to my phone", PhoneNotifier.IsEnabled,
+                () => PhoneNotifier.SetEnabled(!PhoneNotifier.IsEnabled)));
+            phone.Items.Add(Item("How to set up my phone…", null, PhoneNotifier.ShowSetup));
+            var test = Item("Send a test notification", null, PhoneNotifier.SendTest);
+            test.IsEnabled = PhoneNotifier.IsEnabled;
+            phone.Items.Add(test);
+            phone.Items.Add(new Separator());
+            var showText = Check("Include the task text", settings.PhoneShowTaskText,
+                () => SettingsService.Update(s => s.PhoneShowTaskText = !s.PhoneShowTaskText));
+            showText.ToolTip = "Off: the phone only shows the time, e.g. \"Task at 14:00\"";
+            phone.Items.Add(showText);
+            menu.Items.Add(phone);
             menu.Items.Add(new Separator());
 
             menu.Items.Add(Item("Export notes…", "", ExportNotes));

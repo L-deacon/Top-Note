@@ -14,6 +14,10 @@ namespace Top_Note.Services
         public bool DailyNoteEnabled { get; set; } = true;
         // Popups 5 minutes before and at the time of timed tasks in the daily note.
         public bool RemindersEnabled { get; set; } = true;
+        // Reminders also pushed to the phone through ntfy (see PhoneNotifier).
+        public bool PhoneNotifyEnabled { get; set; }
+        public string? PhoneNotifyTopic { get; set; }
+        public bool PhoneShowTaskText { get; set; } = true;
         // yyyy-MM-dd of the last daily task note, and its note Id.
         public string? DailyNoteDate { get; set; }
         public int? DailyNoteId { get; set; }

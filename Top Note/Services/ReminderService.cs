@@ -95,6 +95,7 @@ namespace Top_Note.Services
             window.Show();
             Arrange();
             System.Media.SystemSounds.Exclamation.Play();
+            PhoneNotifier.Remind(task, kind);
         }
 
         // Stack popups up from the bottom-right corner of the main screen, newest at the bottom.
